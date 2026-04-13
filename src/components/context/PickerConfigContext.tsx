@@ -60,6 +60,7 @@ export function useSetConfig(config: PickerConfig) {
     config.skinTonePickerLocation,
     config.allowExpandReactions,
     config.emojiData,
+    config.nonce,
   ]);
 
   return mergedConfig;

@@ -25,6 +25,7 @@ export function compareConfig(prev: PickerConfig, next: PickerConfig) {
     prev.searchDisabled === next.searchDisabled &&
     prev.skinTonePickerLocation === next.skinTonePickerLocation &&
     prevCustomEmojis.length === nextCustomEmojis.length &&
-    prev.emojiData === next.emojiData
+    prev.emojiData === next.emojiData &&
+    prev.nonce === next.nonce
   );
 }
