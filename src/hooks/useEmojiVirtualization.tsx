@@ -1,6 +1,8 @@
 import { ReactNode, useEffect } from 'react';
 import * as React from 'react';
 
+import { cx } from 'flairup';
+import { stylesheet } from '../Stylesheet/stylesheet';
 import { useBodyRef } from '../components/context/ElementRefContext';
 import { useActiveSkinToneState } from '../components/context/PickerContext';
 import { ClickableEmoji } from '../components/emoji/Emoji';
@@ -44,8 +46,6 @@ export function useEmojiVirtualization({
   const showVariations = !useSkinTonesDisabledConfig();
   const BodyRef = useBodyRef();
 
-  let virtualizedCounter = 0;
-
   const emojisToPush = categoryEmojis.filter((emoji) => {
     const isDisallowed = isEmojiDisallowed(emoji);
     const { failedToLoad, filteredOut, hidden } = isEmojiHidden(emoji);
@@ -72,12 +72,23 @@ export function useEmojiVirtualization({
       dimensions,
     });
 
+  // Instead of absolutely positioning each emoji, we use CSS Grid auto-flow.
+  // Off-screen (virtualized) emojis are replaced by empty spacer spans so the
+  // grid retains the correct total height without any inline style= attribute.
   const emojis = emojisToPush.reduce((accumulator, emoji, index) => {
     const unified = emojiUnified(emoji, activeSkinTone);
     const style = getEmojiPositionStyle(dimensions, index);
 
+    if (!isCategoryVisible) {
+      // Category is outside the viewport entirely — render a lightweight
+      // spacer so the grid row keeps its height and scroll math stays correct.
+      accumulator.push(
+        <span key={unified} className={cx(emojiSpacerClass)} aria-hidden="true" />,
+      );
+      return accumulator;
+    }
+
     if (isVirtualized(style)) {
-      virtualizedCounter++;
       preloadEmojiIfNeeded(
         emoji,
         emojiStyle,
@@ -88,11 +99,9 @@ export function useEmojiVirtualization({
         dimensions,
         getEmojiUrl,
       );
-      return accumulator;
-    }
-
-    if (!isCategoryVisible) {
-      virtualizedCounter++;
+      accumulator.push(
+        <span key={unified} className={cx(emojiSpacerClass)} aria-hidden="true" />,
+      );
       return accumulator;
     }
 
@@ -105,18 +114,24 @@ export function useEmojiVirtualization({
         emojiStyle={emojiStyle}
         lazyLoad={lazyLoadEmojis}
         getEmojiUrl={getEmojiUrl}
-        style={{
-          ...style,
-          position: 'absolute',
-        }}
       />,
     );
     return accumulator;
   }, [] as ReactNode[]);
 
   return {
-    virtualizedCounter,
     emojis,
     dimensions,
   };
 }
+
+// Empty grid cell that keeps the row height without using inline styles.
+const emojiSpacerStyles = stylesheet.create({
+  emojiSpacer: {
+    display: 'block',
+    width: 'var(--epr-emoji-fullsize)',
+    height: 'var(--epr-emoji-fullsize)',
+  },
+});
+
+const emojiSpacerClass = emojiSpacerStyles.emojiSpacer;

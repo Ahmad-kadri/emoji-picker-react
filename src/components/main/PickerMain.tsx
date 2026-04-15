@@ -2,6 +2,7 @@ import { cx } from 'flairup';
 import * as React from 'react';
 
 import { ClassNames } from '../../DomUtils/classNames';
+import { DynamicPickerStyle } from '../../Stylesheet/DynamicPickerStyle';
 import { stylesheet } from '../../Stylesheet/stylesheet';
 import {
   useClassNameConfig,
@@ -33,12 +34,13 @@ export default function PickerMain({ children }: Props) {
 }
 
 type RootProps = Readonly<{
-  className?: string;
-  style?: React.CSSProperties;
   children: React.ReactNode;
 }>;
 
 function PickerRootElement({ children }: RootProps) {
+  const id = React.useId();
+  const pickerId = id.replace(/:/g, '_');
+
   const [reactionsMode] = useReactionsModeState();
   const theme = useThemeConfig();
   const searchModeActive = useIsSearchMode();
@@ -51,28 +53,66 @@ function PickerRootElement({ children }: RootProps) {
 
   const { width, height, ...styleProps } = style || {};
 
-  return (
-    <aside
-      className={cx(
-        styles.main,
-        styles.baseVariables,
-        theme === Theme.DARK && styles.darkTheme,
-        theme === Theme.AUTO && styles.autoThemeDark,
-        {
-          [ClassNames.searchActive]: searchModeActive,
-        },
-        reactionsMode && styles.reactionsMenu,
-        className,
-      )}
-      ref={PickerMainRef}
-      style={{
-        ...styleProps,
-        ...(!reactionsMode && { height, width }),
-      }}
-    >
-      {children}
-    </aside>
+  // Build dynamic CSS for width/height/custom styles via a nonce-tagged <style>
+  // instead of inline style="" attributes (CSP style-src compliance).
+  const pickerCss = buildPickerCss(
+    `#${pickerId}`,
+    !reactionsMode ? width : undefined,
+    !reactionsMode ? height : undefined,
+    styleProps,
   );
+
+  return (
+    <>
+      <DynamicPickerStyle css={pickerCss} />
+      <aside
+        id={pickerId}
+        className={cx(
+          styles.main,
+          styles.baseVariables,
+          theme === Theme.DARK && styles.darkTheme,
+          theme === Theme.AUTO && styles.autoThemeDark,
+          {
+            [ClassNames.searchActive]: searchModeActive,
+          },
+          reactionsMode && styles.reactionsMenu,
+          className,
+        )}
+        ref={PickerMainRef}
+      >
+        {children}
+      </aside>
+    </>
+  );
+}
+
+/** Converts a React.CSSProperties object to a CSS declaration block string. */
+function cssPropertiesToString(style: React.CSSProperties): string {
+  return Object.entries(style)
+    .filter(([, v]) => v !== undefined && v !== null && v !== '')
+    .map(([prop, value]) => {
+      const cssProp = prop.replace(/([A-Z])/g, (m) => `-${m.toLowerCase()}`);
+      return `${cssProp}:${value}`;
+    })
+    .join(';');
+}
+
+function buildPickerCss(
+  selector: string,
+  width: React.CSSProperties['width'],
+  height: React.CSSProperties['height'],
+  extraStyle: React.CSSProperties,
+): string {
+  const declarations: string[] = [];
+
+  if (width !== undefined) declarations.push(`width:${width}`);
+  if (height !== undefined) declarations.push(`height:${height}`);
+
+  const extra = cssPropertiesToString(extraStyle);
+  if (extra) declarations.push(extra);
+
+  if (!declarations.length) return '';
+  return `${selector}{${declarations.join(';')}}`;
 }
 
 const DarkTheme = {

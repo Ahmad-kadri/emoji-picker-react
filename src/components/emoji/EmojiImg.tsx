@@ -8,7 +8,7 @@ import { emojiStyles } from './emojiStyles';
 
 export function EmojiImg({
   emojiName,
-  style,
+  sizeClassName,
   lazyLoad = false,
   imgUrl,
   onError,
@@ -16,7 +16,7 @@ export function EmojiImg({
 }: {
   emojiName: string;
   emojiStyle: EmojiStyle;
-  style: React.CSSProperties;
+  sizeClassName?: string;
   lazyLoad?: boolean;
   imgUrl: string;
   onError: () => void;
@@ -30,11 +30,11 @@ export function EmojiImg({
         styles.emojiImag,
         emojiStyles.external,
         emojiStyles.common,
+        sizeClassName,
         className,
       )}
       loading={lazyLoad ? 'lazy' : 'eager'}
       onError={onError}
-      style={style}
     />
   );
 }

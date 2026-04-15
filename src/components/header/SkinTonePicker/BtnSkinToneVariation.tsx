@@ -11,7 +11,6 @@ type Props = {
   onClick: () => void;
   isActive: boolean;
   skinToneVariation: SkinTones;
-  style?: React.CSSProperties;
 };
 
 // eslint-disable-next-line complexity
@@ -20,11 +19,9 @@ export function BtnSkinToneVariation({
   onClick,
   isActive,
   skinToneVariation,
-  style,
 }: Props) {
   return (
     <Button
-      style={style}
       onClick={onClick}
       className={cx(
         `epr-tone-${skinToneVariation}`,

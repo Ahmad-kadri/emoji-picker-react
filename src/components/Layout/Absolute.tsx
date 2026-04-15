@@ -1,15 +1,21 @@
+import { cx } from 'flairup';
 import * as React from 'react';
+
+import { stylesheet } from '../../Stylesheet/stylesheet';
 
 type Props = Readonly<{
   children: React.ReactNode;
   className?: string;
-  style?: React.CSSProperties;
 }>;
 
-export default function Absolute({ children, className, style }: Props) {
+export default function Absolute({ children, className }: Props) {
   return (
-    <div style={{ ...style, position: 'absolute' }} className={className}>
-      {children}
-    </div>
+    <div className={cx(styles.absolute, className)}>{children}</div>
   );
 }
+
+const styles = stylesheet.create({
+  absolute: {
+    position: 'absolute',
+  },
+});

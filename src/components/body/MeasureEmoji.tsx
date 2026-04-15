@@ -1,5 +1,7 @@
+import { cx } from 'flairup';
 import * as React from 'react';
 
+import { stylesheet } from '../../Stylesheet/stylesheet';
 import { categoryFromCategoryConfig } from '../../config/categoryConfig';
 import {
   useCategoriesConfig,
@@ -48,7 +50,9 @@ export function MeasureEmoji() {
   }
 
   return (
-    <div ref={ref}>
+    // Wrapper is invisible and out of flow so it doesn't affect layout.
+    // The child emoji's rendered height is read to calibrate virtual scroll.
+    <div ref={ref} className={cx(styles.measureWrapper)}>
       <ClickableEmoji
         emoji={dummyEmoji}
         unified={unified}
@@ -57,17 +61,18 @@ export function MeasureEmoji() {
         lazyLoad={lazyLoadEmojis}
         showVariations={false}
         hidden={false}
-        style={{
-          opacity: 0,
-          pointerEvents: 'none',
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          zIndex: -1,
-          height: 'var(--epr-emoji-fullsize)',
-          width: 'var(--epr-emoji-fullsize)',
-        }}
       />
     </div>
   );
 }
+
+const styles = stylesheet.create({
+  measureWrapper: {
+    opacity: '0',
+    pointerEvents: 'none',
+    position: 'absolute',
+    top: '0',
+    left: '0',
+    zIndex: '-1',
+  },
+});

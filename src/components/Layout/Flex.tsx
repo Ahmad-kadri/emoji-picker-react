@@ -11,21 +11,16 @@ export enum FlexDirection {
 type Props = Readonly<{
   children: React.ReactNode;
   className?: string;
-  style?: React.CSSProperties;
   direction?: FlexDirection;
 }>;
 
 export default function Flex({
   children,
   className,
-  style = {},
   direction = FlexDirection.ROW,
 }: Props) {
   return (
-    <div
-      style={{ ...style }}
-      className={cx(styles.flex, className, styles[direction])}
-    >
+    <div className={cx(styles.flex, className, styles[direction])}>
       {children}
     </div>
   );

@@ -1,11 +1,18 @@
 import { cx } from 'flairup';
 import * as React from 'react';
 
+import { stylesheet } from '../../Stylesheet/stylesheet';
+
 type Props = Readonly<{
   className?: string;
-  style?: React.CSSProperties;
 }>;
 
-export default function Space({ className, style = {} }: Props) {
-  return <div style={{ flex: 1, ...style }} className={cx(className)} />;
+export default function Space({ className }: Props) {
+  return <div className={cx(styles.space, className)} />;
 }
+
+const styles = stylesheet.create({
+  space: {
+    flex: '1',
+  },
+});

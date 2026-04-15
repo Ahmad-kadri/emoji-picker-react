@@ -21,7 +21,10 @@ import {
 
 import { BtnSkinToneVariation } from './BtnSkinToneVariation';
 
+// The size of each skin tone button (px). Must match SKIN_TONE_STATIC_CSS in stylesheet.tsx.
 const ITEM_SIZE = 28;
+// Total width when expanded (ITEM_SIZE * number of skin tones).
+const EXPANDED_SIZE = ITEM_SIZE * skinToneVariations.length; // 168px
 
 type Props = {
   direction?: SkinTonePickerDirection;
@@ -29,8 +32,8 @@ type Props = {
 
 export function SkinTonePickerMenu() {
   return (
-    <Relative style={{ height: ITEM_SIZE }}>
-      <Absolute style={{ bottom: 0, right: 0 }}>
+    <Relative className={cx(styles.menuRelative)}>
+      <Absolute className={cx(styles.menuAbsolute)}>
         <SkinTonePicker direction={SkinTonePickerDirection.VERTICAL} />
       </Absolute>
     </Relative>
@@ -52,10 +55,6 @@ export function SkinTonePicker({
     return null;
   }
 
-  const fullWidth = `${ITEM_SIZE * skinToneVariations.length}px`;
-
-  const expandedSize = isOpen ? fullWidth : ITEM_SIZE + 'px';
-
   const vertical = direction === SkinTonePickerDirection.VERTICAL;
 
   return (
@@ -66,14 +65,9 @@ export function SkinTonePicker({
         isOpen && styles.open,
         vertical && isOpen && styles.verticalShadow,
       )}
-      style={
-        vertical
-          ? { flexBasis: expandedSize, height: expandedSize }
-          : { flexBasis: expandedSize }
-      }
     >
       <div className={cx(styles.select)} ref={SkinTonePickerRef}>
-        {skinToneVariations.map((skinToneVariation, i) => {
+        {skinToneVariations.map((skinToneVariation) => {
           const active = skinToneVariation === activeSkinTone;
 
           return (
@@ -81,14 +75,6 @@ export function SkinTonePicker({
               key={skinToneVariation}
               skinToneVariation={skinToneVariation}
               isOpen={isOpen}
-              style={{
-                transform: cx(
-                  vertical
-                    ? `translateY(-${i * (isOpen ? ITEM_SIZE : 0)}px)`
-                    : `translateX(-${i * (isOpen ? ITEM_SIZE : 0)}px)`,
-                  isOpen && active && 'scale(1.3)',
-                ),
-              }}
               isActive={active}
               onClick={() => {
                 if (isOpen) {
@@ -124,8 +110,24 @@ const styles = stylesheet.create({
     justifyContent: 'flex-end',
     transition: 'all 0.3s ease-in-out',
     padding: '10px 0',
+    // Default (horizontal, closed): collapsed to a single button width
+    flexBasis: `${ITEM_SIZE}px`,
+    // Open (horizontal): expand to full width
+    '&.epr-open': {
+      flexBasis: `${EXPANDED_SIZE}px`,
+    },
+    // Vertical closed: also constrain height
+    '&.epr-vertical': {
+      height: `${ITEM_SIZE}px`,
+    },
+    // Vertical open: expand both axes
+    '&.epr-open.epr-vertical': {
+      flexBasis: `${EXPANDED_SIZE}px`,
+      height: `${EXPANDED_SIZE}px`,
+    },
   },
   vertical: {
+    '.': ClassNames.vertical,
     padding: '9px',
     alignItems: 'flex-end',
     flexDirection: 'column',
@@ -136,6 +138,7 @@ const styles = stylesheet.create({
     boxShadow: '0px 0 7px var(--epr-picker-border-color)',
   },
   open: {
+    '.': ClassNames.open,
     // @ts-ignore - backdropFilter is not recognized.
     backdropFilter: 'blur(5px)',
     background: 'var(--epr-skin-tone-picker-menu-color)',
@@ -148,5 +151,14 @@ const styles = stylesheet.create({
     position: 'relative',
     width: 'var(--epr-skin-tone-size)',
     height: 'var(--epr-skin-tone-size)',
+  },
+  // SkinTonePickerMenu layout: the Relative wrapper needs a fixed height,
+  // and the Absolute wrapper is pinned to bottom-right.
+  menuRelative: {
+    height: `${ITEM_SIZE}px`,
+  },
+  menuAbsolute: {
+    bottom: '0',
+    right: '0',
   },
 });

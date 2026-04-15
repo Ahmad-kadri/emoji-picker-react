@@ -18,7 +18,6 @@ type Props = Readonly<{
   children?: React.ReactNode;
   hidden?: boolean;
   hiddenOnSearch?: boolean;
-  height?: number;
 }>;
 
 export function EmojiCategory({
@@ -26,7 +25,6 @@ export function EmojiCategory({
   children,
   hidden,
   hiddenOnSearch,
-  height,
 }: Props) {
   const category = categoryFromCategoryConfig(categoryConfig);
   const categoryName = categoryNameFromCategoryConfig(categoryConfig);
@@ -42,7 +40,7 @@ export function EmojiCategory({
       aria-label={categoryName}
     >
       <h2 className={cx(styles.label)}>{categoryName}</h2>
-      <div className={cx(styles.categoryContent)} style={{ height }}>
+      <div className={cx(styles.categoryContent)}>
         {children}
       </div>
     </li>
@@ -61,6 +59,7 @@ const styles = stylesheet.create({
     display: 'grid',
     gridGap: '0',
     gridTemplateColumns: 'repeat(auto-fill, var(--epr-emoji-fullsize))',
+    gridAutoRows: 'var(--epr-emoji-fullsize)',
     justifyContent: 'space-between',
     margin: 'var(--epr-category-padding)',
     position: 'relative',

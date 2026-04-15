@@ -12,6 +12,7 @@ export function ExportedEmoji({
   lazyLoad = false,
   getEmojiUrl,
   emojiUrl,
+  nonce,
 }: {
   unified: string;
   emojiStyle?: EmojiStyle;
@@ -19,18 +20,34 @@ export function ExportedEmoji({
   lazyLoad?: boolean;
   getEmojiUrl?: GetEmojiUrl;
   emojiUrl?: string;
+  /** CSP nonce for the injected <style> tag that applies the size. */
+  nonce?: string;
 }) {
+  const id = React.useId();
+  const sizeClass = `epr-exported-${id.replace(/:/g, '')}`;
+
   if (!unified && !emojiUrl && !getEmojiUrl) {
     return null;
   }
 
   return (
-    <ViewOnlyEmoji
-      unified={unified}
-      size={size}
-      emojiStyle={emojiStyle}
-      lazyLoad={lazyLoad}
-      getEmojiUrl={emojiUrl ? () => emojiUrl : getEmojiUrl}
-    />
+    <>
+      {size && (
+        <style
+          nonce={nonce}
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{
+            __html: `.${sizeClass}{width:${size}px;height:${size}px;font-size:${size}px}`,
+          }}
+        />
+      )}
+      <ViewOnlyEmoji
+        unified={unified}
+        emojiStyle={emojiStyle}
+        lazyLoad={lazyLoad}
+        getEmojiUrl={emojiUrl ? () => emojiUrl : getEmojiUrl}
+        className={size ? sizeClass : undefined}
+      />
+    </>
   );
 }

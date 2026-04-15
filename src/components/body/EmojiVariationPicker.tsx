@@ -11,6 +11,7 @@ import {
   emojiTruOffsetLeft,
 } from '../../DomUtils/selectors';
 import { darkMode, stylesheet } from '../../Stylesheet/stylesheet';
+import { DynamicPickerStyle } from '../../Stylesheet/DynamicPickerStyle';
 import {
   useEmojiStyleConfig,
   useGetEmojiUrlConfig,
@@ -38,6 +39,9 @@ enum Direction {
 
 // eslint-disable-next-line complexity
 export function EmojiVariationPicker() {
+  const id = React.useId();
+  const pickerId = id.replace(/:/g, '_');
+
   const AnchoredEmojiRef = useAnchoredEmojiRef();
   const VariationPickerRef = useVariationPickerRef();
   const [emoji] = useEmojiVariationPickerState();
@@ -66,49 +70,61 @@ export function EmojiVariationPicker() {
     focusFirstVisibleEmoji(VariationPickerRef.current);
   }, [VariationPickerRef, visible, AnchoredEmojiRef]);
 
-  let top, pointerStyle;
+  let top: number | undefined, pointerLeft: number | undefined;
 
   if (!visible && AnchoredEmojiRef.current) {
     setAnchoredEmojiRef(null);
   } else {
     top = getTop();
-    pointerStyle = getPointerStyle();
+    pointerLeft = getPointerStyle()?.left as number | undefined;
   }
 
+  const dynamicCss = [
+    `#${pickerId}{top:${top ?? 0}px}`,
+    pointerLeft !== undefined
+      ? `#${pickerId} .epr-emoji-pointer{left:${pointerLeft}px}`
+      : '',
+  ]
+    .filter(Boolean)
+    .join('');
+
   return (
-    <div
-      ref={VariationPickerRef}
-      className={cx(
-        styles.variationPicker,
-        getMenuDirection() === Direction.Down && styles.pointingUp,
-        visible && styles.visible,
-      )}
-      style={{ top }}
-    >
-      {visible && emoji
-        ? [emojiUnified(emoji)]
-            .concat(emojiVariations(emoji))
-            .slice(0, 6)
-            .map((unified) => (
-              <ClickableEmoji
-                key={unified}
-                emoji={emoji}
-                unified={unified}
-                emojiStyle={emojiStyle}
-                showVariations={false}
-                getEmojiUrl={getEmojiUrl}
-              />
-            ))
-        : null}
-      <div className={cx(styles.pointer)} style={pointerStyle} />
-    </div>
+    <>
+      <DynamicPickerStyle css={dynamicCss} />
+      <div
+        id={pickerId}
+        ref={VariationPickerRef}
+        className={cx(
+          styles.variationPicker,
+          getMenuDirection() === Direction.Down && styles.pointingUp,
+          visible && styles.visible,
+        )}
+      >
+        {visible && emoji
+          ? [emojiUnified(emoji)]
+              .concat(emojiVariations(emoji))
+              .slice(0, 6)
+              .map((unified) => (
+                <ClickableEmoji
+                  key={unified}
+                  emoji={emoji}
+                  unified={unified}
+                  emojiStyle={emojiStyle}
+                  showVariations={false}
+                  getEmojiUrl={getEmojiUrl}
+                />
+              ))
+          : null}
+        <div className={cx(styles.pointer)} />
+      </div>
+    </>
   );
 }
 
 function usePointerStyle(VariationPickerRef: React.RefObject<HTMLElement>) {
   const AnchoredEmojiRef = useAnchoredEmojiRef();
   return function getPointerStyle() {
-    const style: React.CSSProperties = {};
+    const style: { left?: number } = {};
     if (!VariationPickerRef.current) {
       return style;
     }

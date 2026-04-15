@@ -19,7 +19,6 @@ type ClickableEmojiButtonProps = Readonly<{
   unified?: string;
   noBackground?: boolean;
   className?: string;
-  style?: React.CSSProperties;
 }>;
 
 export function ClickableEmojiButton({
@@ -32,7 +31,6 @@ export function ClickableEmojiButton({
   children,
   className,
   noBackground = false,
-  style,
 }: ClickableEmojiButtonProps) {
   return (
     <Button
@@ -50,7 +48,6 @@ export function ClickableEmojiButton({
       data-unified={unified}
       aria-label={getAriaLabel(emojiNames)}
       data-full-name={emojiNames}
-      style={style}
     >
       {children}
     </Button>
