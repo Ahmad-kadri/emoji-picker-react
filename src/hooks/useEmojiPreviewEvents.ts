@@ -88,28 +88,30 @@ export function useEmojiPreviewEvents(
         return;
       }
 
-      // Set preview synchronously rather than relying on the focus listener:
-      // virtualized rows can unmount the button before focusElement's rAF fires
-      // (e.g. Mac trackpad inertia scroll), so button.focus() becomes a no-op
-      // and the preview would otherwise freeze.
-      setPreviewFromButton(button, setPreviewEmoji);
-
       const belowFoldByPx = detectEmojyPartiallyBelowFold(button, bodyRef);
       const buttonHeight = button.getBoundingClientRect().height;
 
       if (belowFoldByPx < buttonHeight) {
         // Partially below the fold: skip focus to avoid auto-scroll-into-view.
-        // Manually blur so the previous focus ring doesn't linger.
-        (document.activeElement as HTMLElement)?.blur?.();
+        // Blur the prior emoji first so its blur-driven onLeave can't clobber
+        // the preview update we queue right after. Scope the blur to emoji
+        // buttons so we never blur the search input or other UI.
+        buttonFromTarget(document.activeElement as HTMLElement)?.blur();
+        setPreviewFromButton(button, setPreviewEmoji);
         return;
       }
 
+      // Set preview synchronously rather than relying on the focus listener:
+      // virtualized rows can unmount the button before focusElement's rAF fires
+      // (e.g. Mac trackpad inertia scroll), so button.focus() becomes a no-op
+      // and the preview would otherwise freeze.
+      setPreviewFromButton(button, setPreviewEmoji);
       // Fully visible: focus too, so keyboard navigation continues from here.
       focusElement(button);
     }
 
     return () => {
-      bodyRef?.removeEventListener('mouseover', onMouseOver);
+      bodyRef?.removeEventListener('mouseover', onMouseOver, true);
       bodyRef?.removeEventListener('mouseout', onLeave);
       bodyRef?.removeEventListener('focus', onEnter, true);
       bodyRef?.removeEventListener('blur', onLeave, true);
