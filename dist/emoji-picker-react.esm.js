@@ -24639,6 +24639,25 @@ function useCategoryHeight(emojiCount) {
       rootEl.removeEventListener('transitionend', handler);
     };
   }, [PickerMainRef, computeAndSetDimensions]);
+  // Recompute when the list element's actual width changes — e.g., a
+  // scrollbar appearing after emojis load, fonts finishing loading, or the
+  // container resizing. Without this, the cached emojisPerRow can drift
+  // from the live width: virtualization keeps placing emojis at the wider
+  // count while keyboard nav re-measures live and reads the narrower count,
+  // causing diagonal ArrowDown/Up drift.
+  useEffect(function () {
+    var listEl = EmojiListRef.current;
+    if (!listEl || typeof ResizeObserver === 'undefined') {
+      return;
+    }
+    var ro = new ResizeObserver(function () {
+      computeAndSetDimensions();
+    });
+    ro.observe(listEl);
+    return function () {
+      return ro.disconnect();
+    };
+  }, [EmojiListRef, computeAndSetDimensions]);
   return dimensions;
 }
 
