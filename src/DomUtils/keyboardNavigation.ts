@@ -4,6 +4,7 @@ import { scrollEmojiAboveLabel } from './scrollTo';
 import {
   allVisibleEmojis,
   closestCategory,
+  closestEmojiList,
   firstVisibleEmoji,
   lastVisibleEmoji,
   nextCategory,
@@ -96,7 +97,12 @@ function visibleEmojiOneRowUp(element: HTMLElement) {
 
   const categoryContent = closestCategoryContent(element);
   const category = closestCategory(categoryContent);
-  const countInRow = elementCountInRow(categoryContent, element);
+  // Measure against the .epr-emoji-list (the category's parent <ul>) so this
+  // matches the width virtualization uses for emojisPerRow. categoryContent
+  // is 2 × --epr-horizontal-padding narrower than the list, which made the
+  // two calculations disagree by 1 at certain widths and caused diagonal
+  // ArrowDown/Up drift.
+  const countInRow = elementCountInRow(closestEmojiList(element), element);
 
   const emojisInCurrentCategory = allVisibleEmojis(category);
   const currentEmojiIndex = emojisInCurrentCategory.indexOf(element);
@@ -146,7 +152,8 @@ function visibleEmojiOneRowDown(element: HTMLElement) {
 
   const categoryContent = closestCategoryContent(element);
   const category = closestCategory(categoryContent);
-  const countInRow = elementCountInRow(categoryContent, element);
+  // Measure against the .epr-emoji-list (see visibleEmojiOneRowUp for why).
+  const countInRow = elementCountInRow(closestEmojiList(element), element);
 
   const emojisInCurrentCategory = allVisibleEmojis(category);
   const currentEmojiIndex = emojisInCurrentCategory.indexOf(element);

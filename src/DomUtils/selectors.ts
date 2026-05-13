@@ -323,3 +323,10 @@ export function closestCategoryContent(element: NullableElement) {
     asSelectors(ClassNames.categoryContent),
   ) as HTMLElement;
 }
+
+export function closestEmojiList(element: NullableElement): NullableElement {
+  if (!element) {
+    return null;
+  }
+  return element.closest(asSelectors(ClassNames.emojiList)) as HTMLElement | null;
+}
